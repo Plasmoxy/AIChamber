@@ -2,31 +2,45 @@ let data = []
 
 let m = 1
 let b = 0
+let r = 1
 
 function setup() {
     createCanvas(500, 500)
+    textSize(16)
 }
 
 
 function linearRegression() {
-    let xsum = data.map((p) => p.x).reduce((a, x) => a + x)
-    let ysum = data.map((p) => p.y).reduce((a, x) => a + x)
-    
-    let xmean = xsum / data.length
-    let ymean = ysum / data.length
+    const xs = data.map((p) => p.x)
+    const ys = data.map((p) => p.y)
 
-    let numerator = data.reduce(
+    const xsum = xs.reduce((a, x) => a + x)
+    const ysum = ys.reduce((a, x) => a + x)
+
+    const xmean = xsum / data.length
+    const ymean = ysum / data.length
+
+    const numerator = data.reduce(
         (a, p) => a + (p.x - xmean) * (p.y-ymean),
         0
     )
 
-    let denominator = data.reduce(
+    const denominator = data.reduce(
         (a, p) => a + (p.x - xmean) * (p.x - xmean),
         0
     )
 
     m = numerator/denominator
     b = ymean - m * xmean
+
+    const totalSum = ys.reduce((a, y) => a + Math.pow(y - ymean, 2))
+    const residualSum = data.reduce(
+        (a, p) => a + Math.pow(p.y - (m*p.x + b), 2),
+        0
+    )
+
+    // coefficient of determination
+    r = 1 - Math.round(1000*Math.sqrt(residualSum/totalSum))/1000.0
 }
 
 function drawLine() {
@@ -46,11 +60,13 @@ function drawLine() {
 
 
 function mousePressed() {
-    let x = map(mouseX, 0, width, 0, 1)
-    let y = map(mouseY, 0, height, 1, 0)
 
-    let point = createVector(x, y)
-    data.push(point)
+    data.push(
+        createVector(
+            map(mouseX, 0, width, 0, 1),
+            map(mouseY, 0, height, 1, 0)
+        )
+    )
 
     if (data.length > 1) {
         linearRegression()
@@ -69,5 +85,9 @@ function draw() {
     }
 
     drawLine()
+
+    noStroke()
+    fill(255)
+    text("[y = mx + b]\nr = " + r + "\nm = " + m + "\nb = " + b, 20, 30)
 
 }
